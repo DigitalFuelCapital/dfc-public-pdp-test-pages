@@ -52,6 +52,23 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
 
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    # dotenv not installed, try to load .env manually
+    env_path = Path(__file__).parent.parent / ".env"
+    if env_path.exists():
+        with open(env_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, value = line.split('=', 1)
+                    # Remove quotes if present
+                    value = value.strip('"\'')
+                    os.environ[key] = value
+
 # Lazy import so the script can run --dry-run without openai installed
 OpenAI = None  # type: ignore
 
@@ -146,27 +163,61 @@ def build_prompt(shopper: ShopperPrompt, pdp_urls: List[str]) -> str:
 
 
 def parse_model_json(s: str) -> Dict[str, Any]:
+    """Parse JSON from model response with debug logging."""
+    print(f"DEBUG: parse_model_json - Input string length: {len(s)}")
+    print(f"DEBUG: parse_model_json - First 200 chars: {repr(s[:200])}")
+    
     # Try to extract JSON even if model adds text
-    # Prefer the largest JSON object present
-    candidates = re.findall(r"\{(?:[^{}]|(?R))*\}", s, flags=re.DOTALL)
-    # If PCRE recursion isn't supported, fallback: naive first/last brace
-    if not candidates:
-        first = s.find("{")
-        last = s.rfind("}")
-        if first != -1 and last != -1 and last > first:
-            candidates = [s[first:last + 1]]
-    best: Optional[Dict[str, Any]] = None
-    for c in candidates[::-1]:
-        try:
-            obj = json.loads(c)
-            if isinstance(obj, dict):
-                best = obj
-                break
-        except Exception:
-            continue
-    if best is None:
-        raise ValueError("Failed to parse JSON from model response.")
-    return best
+    # Use a simpler regex pattern that works with Python's re module
+    try:
+        # First try: look for balanced braces using a simpler approach
+        candidates = []
+        brace_count = 0
+        start_pos = -1
+        
+        for i, char in enumerate(s):
+            if char == '{':
+                if brace_count == 0:
+                    start_pos = i
+                brace_count += 1
+            elif char == '}':
+                brace_count -= 1
+                if brace_count == 0 and start_pos != -1:
+                    candidates.append(s[start_pos:i + 1])
+        
+        print(f"DEBUG: parse_model_json - Found {len(candidates)} JSON candidates")
+        
+        # If no balanced braces found, fallback: naive first/last brace
+        if not candidates:
+            print("DEBUG: parse_model_json - No balanced braces found, trying fallback")
+            first = s.find("{")
+            last = s.rfind("}")
+            if first != -1 and last != -1 and last > first:
+                candidates = [s[first:last + 1]]
+                print(f"DEBUG: parse_model_json - Fallback candidate: {repr(candidates[0][:100])}")
+        
+        best: Optional[Dict[str, Any]] = None
+        for i, c in enumerate(candidates[::-1]):
+            print(f"DEBUG: parse_model_json - Trying candidate {i}: {repr(c[:100])}")
+            try:
+                obj = json.loads(c)
+                if isinstance(obj, dict):
+                    best = obj
+                    print(f"DEBUG: parse_model_json - Successfully parsed JSON with keys: {list(obj.keys())}")
+                    break
+            except Exception as e:
+                print(f"DEBUG: parse_model_json - Failed to parse candidate {i}: {e}")
+                continue
+        
+        if best is None:
+            print("DEBUG: parse_model_json - No valid JSON found in any candidate")
+            raise ValueError("Failed to parse JSON from model response.")
+        
+        return best
+        
+    except Exception as e:
+        print(f"DEBUG: parse_model_json - Exception in parsing: {e}")
+        raise
 
 
 def init_openai():
@@ -184,11 +235,16 @@ def call_model(
     timeout: int,
     dry_run: bool = False,
 ) -> Dict[str, Any]:
+    print(f"DEBUG: call_model - Starting with dry_run={dry_run}, model={model}")
+    
     if dry_run:
+        print("DEBUG: call_model - Running in dry-run mode")
         # produce a small mocked plausible JSON
         # Randomly choose a URL from list within prompt
         urls = re.findall(r"- (https?://\S+)", prompt)
+        print(f"DEBUG: call_model - Found {len(urls)} URLs in prompt")
         chosen = random.choice(urls) if urls else (urls[0] if urls else "UNKNOWN")
+        print(f"DEBUG: call_model - Chosen URL: {chosen}")
         features = [
             {"name": "fabric", "weight": round(random.uniform(0.2, 0.5), 2), "note": "Oxford cotton noted on PDP."},
             {"name": "fit", "weight": round(random.uniform(0.1, 0.4), 2), "note": "Size chart and fit guidance present."},
@@ -198,32 +254,50 @@ def call_model(
         if total > 0:
             for f in features:
                 f["weight"] = round(f["weight"] / total, 2)
-        return {
+        result = {
             "chosen_url": chosen,
             "justification": "Based on fabric quality, fit details, and value.",
             "features": features,
         }
+        print(f"DEBUG: call_model - Returning dry-run result: {result}")
+        return result
 
+    print("DEBUG: call_model - Making actual API call")
     if OpenAI is None:
+        print("DEBUG: call_model - Initializing OpenAI client")
         init_openai()
 
-    client = OpenAI(api_key=api_key, base_url=base_url or None, timeout=timeout)
-    # Use Responses API for structured output tendency
-    system_msg = (
-        "You are a precise evaluator that outputs valid minified JSON only. "
-        "Do not include markdown code fences or additional commentary."
-    )
-    response = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": system_msg},
-            {"role": "user", "content": prompt},
-        ],
-        temperature=temperature,
-    )
-    text = response.choices[0].message.content or ""
-    parsed = parse_model_json(text)
-    return parsed
+    try:
+        client = OpenAI(api_key=api_key, base_url=base_url or None, timeout=timeout)
+        print(f"DEBUG: call_model - Created OpenAI client with base_url={base_url}")
+        
+        # Use Responses API for structured output tendency
+        system_msg = (
+            "You are a precise evaluator that outputs valid minified JSON only. "
+            "Do not include markdown code fences or additional commentary."
+        )
+        
+        print(f"DEBUG: call_model - Sending request to model {model}")
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_msg},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=temperature,
+        )
+        
+        text = response.choices[0].message.content or ""
+        print(f"DEBUG: call_model - Received response length: {len(text)}")
+        print(f"DEBUG: call_model - Raw response: {repr(text[:200])}")
+        
+        parsed = parse_model_json(text)
+        print(f"DEBUG: call_model - Successfully parsed JSON")
+        return parsed
+        
+    except Exception as e:
+        print(f"DEBUG: call_model - Exception occurred: {type(e).__name__}: {e}")
+        raise
 
 
 def aggregate_results(raw_records: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
@@ -282,43 +356,68 @@ def run_simulations(
     shopper_name: Optional[str],
     dry_run: bool,
 ) -> Dict[str, Path]:
+    print(f"DEBUG: run_simulations - Starting with {runs} runs, dry_run={dry_run}")
+    
     ensure_dirs()
+    print("DEBUG: run_simulations - Directories ensured")
+    
     api_key = os.getenv("OPENAI_API_KEY")
+    print(f"DEBUG: run_simulations - API key present: {bool(api_key)}")
     if not api_key and not dry_run:
         raise EnvironmentError("OPENAI_API_KEY not set. Set it or use --dry-run for a no-API test.")
 
     base_api_url = os.getenv("OPENAI_BASE_URL", "").strip() or None
+    print(f"DEBUG: run_simulations - Base API URL: {base_api_url}")
 
     # Discover PDP pages and map to URLs
+    print(f"DEBUG: run_simulations - Discovering PDP files in {PDP_DIR}")
     files = discover_pdp_files(PDP_DIR)
+    print(f"DEBUG: run_simulations - Found {len(files)} PDP files: {[f.name for f in files]}")
     if not files:
         print(f"Warning: No PDP files found in {PDP_DIR}.", file=sys.stderr)
+    
     pdp_urls = map_local_to_urls(files, base_url)
+    print(f"DEBUG: run_simulations - Mapped to {len(pdp_urls)} URLs")
+    for i, url in enumerate(pdp_urls):
+        print(f"DEBUG: run_simulations - URL {i+1}: {url}")
+    
     if not pdp_urls:
         raise ValueError("No PDP URLs available to evaluate.")
 
     # Load shoppers
+    print(f"DEBUG: run_simulations - Loading shoppers from {SHOPPERS_CSV}")
     shoppers = load_shoppers(SHOPPERS_CSV, filter_name=shopper_name)
+    print(f"DEBUG: run_simulations - Loaded {len(shoppers)} shoppers")
 
     # Prepare outputs
     raw_path = OUTPUT_DIR / "raw_runs.jsonl"
     summary_path = OUTPUT_DIR / "summary.csv"
     features_path = OUTPUT_DIR / "feature_importance.csv"
     log_path = OUTPUT_DIR / "log.csv"
+    print(f"DEBUG: run_simulations - Output paths prepared")
 
     raw_records: List[Dict[str, Any]] = []
     start_ts = int(time.time())
 
     for i in range(1, runs + 1):
+        print(f"\nDEBUG: run_simulations - Starting run {i}/{runs}")
+        
         shopper = random.choice(shoppers)
+        print(f"DEBUG: run_simulations - Selected shopper: {shopper.name}")
+        
         sample_urls = list(pdp_urls)
         if shuffle:
             random.shuffle(sample_urls)
+            print("DEBUG: run_simulations - URLs shuffled")
         if max_pdp is not None and max_pdp > 0:
             sample_urls = sample_urls[:max_pdp]
+            print(f"DEBUG: run_simulations - Limited to {len(sample_urls)} URLs")
+        
         prompt = build_prompt(shopper, sample_urls)
+        print(f"DEBUG: run_simulations - Built prompt length: {len(prompt)}")
 
         try:
+            print("DEBUG: run_simulations - Calling model...")
             result = call_model(
                 api_key=api_key or "",
                 base_url=base_api_url,
@@ -328,15 +427,24 @@ def run_simulations(
                 timeout=timeout,
                 dry_run=dry_run,
             )
+            print(f"DEBUG: run_simulations - Model call successful")
+            
             # Basic validation
             chosen = result.get("chosen_url")
+            print(f"DEBUG: run_simulations - Chosen URL: {chosen}")
             if chosen not in sample_urls:
+                print("DEBUG: run_simulations - Chosen URL not in candidates, attempting coercion")
                 # attempt to coerce by loose match
                 matches = [u for u in sample_urls if chosen and chosen.strip().lower() in u.lower()]
                 if matches:
+                    print(f"DEBUG: run_simulations - Found match: {matches[0]}")
                     result["chosen_url"] = matches[0]
+                else:
+                    print("DEBUG: run_simulations - No matches found for coercion")
         except Exception as e:
+            print(f"DEBUG: run_simulations - Exception in run {i}: {type(e).__name__}: {e}")
             result = {"error": str(e)}
+            
         rec = {
             "run_index": i,
             "timestamp": int(time.time()),
@@ -349,14 +457,19 @@ def run_simulations(
             "result": result,
         }
         raw_records.append(rec)
+        print(f"DEBUG: run_simulations - Run {i} completed")
 
+    print(f"\nDEBUG: run_simulations - All runs completed, writing outputs...")
+    
     # Write raw
     write_jsonl(raw_path, raw_records)
+    print(f"DEBUG: run_simulations - Raw data written to {raw_path}")
 
     # Aggregate
     summary_rows, feat_rows = aggregate_results(raw_records)
     write_csv_dicts(summary_path, summary_rows, field_order=["pdp_url", "wins"])
     write_csv_dicts(features_path, feat_rows, field_order=["pdp_url", "feature", "avg_weight", "n"])
+    print(f"DEBUG: run_simulations - Summary and features written")
 
     # Log
     log_rows = [{
@@ -373,6 +486,7 @@ def run_simulations(
         "dry_run": dry_run,
     }]
     write_csv_dicts(log_path, log_rows)
+    print(f"DEBUG: run_simulations - Log written")
 
     return {
         "raw": raw_path,
