@@ -1,0 +1,27 @@
+{
+  "active_pdps": [
+    "pdp_pages/active/pdp_oxford_alpine_and_oak.html",
+    "pdp_pages/active/pdp_oxford_cedar_and_loom.html",
+    "pdp_pages/active/pdp_oxford_harbor_and_field.html",
+    "pdp_pages/active/pdp_oxford_mariner_supply.html",
+    "pdp_pages/active/pdp_oxford_riverfoundry.html",
+    "pdp_pages/active/pdp_oxford_stonebridge_outfitters.html",
+    "pdp_pages/active/pdp_oxford_whitestone_provisioners.html"
+  ],
+  "notes": {
+    "description": "Configuration file for PDP evaluation script. Change 'active_pdps' list to control which PDPs are included in simulations.",
+    "available_uvp_variants": [
+      "pdp_pages/active/pdp_oxford_alpine_and_oak_uvp.html",
+      "pdp_pages/active/pdp_oxford_harbor_and_field_uvp.html",
+      "pdp_pages/active/pdp_oxford_mariner_supply_uvp.html",
+      "pdp_pages/active/pdp_oxford_riverfoundry_uvp.html",
+      "pdp_pages/active/pdp_oxford_stonebridge_outfitters_uvp.html"
+    ],
+    "available_baseline_variants": [
+      "pdp_pages/page_1.html",
+      "pdp_pages/page_1_schema_rich.html",
+      "pdp_pages/page_1_UVP.html",
+      "pdp_pages/page_1_schema_rich_UVP.html"
+    ]
+  }
+}

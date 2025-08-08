@@ -4,7 +4,7 @@ Usage:
   python scripts/simulate_pdp_eval.py --base-url https://digitalfuelcapital.github.io/dfc-public-pdp-test-pages/ --runs 100
 
 Summary:
-- Crawls local PDP file list from pdp_pages/active (HTML files) and maps them to full GitHub Pages URLs using --base-url.
+- Loads PDP file list from pdp_pages/pdp_config.json (falls back to pdp_pages/active discovery) and maps them to full GitHub Pages URLs using --base-url.
 - Loads shoppers and prompts from data/shoppers.csv with columns: name,memory,prompt.
 - Runs N simulations (default 100). Each run:
   * Selects a single shopper row (name + memory + a specific prompt) at random unless --shopper-name is provided.
@@ -78,7 +78,8 @@ OpenAI = None  # type: ignore
 DATA_DIR = Path("data")
 OUTPUT_DIR = DATA_DIR / "output"
 SHOPPERS_CSV = DATA_DIR / "shoppers.csv"
-PDP_DIR = Path("pdp_pages") / "active"
+PDP_DIR = Path("pdp_pages")
+PDP_CONFIG = PDP_DIR / "pdp_config.json"
 
 
 @dataclass
@@ -111,21 +112,83 @@ def load_shoppers(csv_path: Path, filter_name: Optional[str] = None) -> List[Sho
     return shoppers
 
 
-def discover_pdp_files(pdp_dir: Path) -> List[Path]:
+def load_pdp_config(config_path: Path) -> List[str]:
+    """
+    Load PDP configuration from JSON config file.
+    
+    Expected format:
+    {
+        "active_pdps": [
+            "pdp_pages/page_1.html",
+            "pdp_pages/active/pdp_oxford_alpine_and_oak.html",
+            ...
+        ]
+    }
+    
+    Returns list of relative file paths from project root.
+    """
+    if not config_path.exists():
+        print(f"Warning: PDP config file not found at {config_path}. Falling back to active/ directory discovery.")
+        return discover_pdp_files_legacy(config_path.parent / "active")
+    
+    try:
+        with config_path.open('r', encoding='utf-8') as f:
+            config = json.load(f)
+        
+        active_pdps = config.get("active_pdps", [])
+        if not isinstance(active_pdps, list):
+            raise ValueError("Config 'active_pdps' must be a list of file paths")
+        
+        # Validate that files exist
+        valid_files = []
+        for file_path in active_pdps:
+            full_path = Path(file_path)
+            if full_path.exists() and full_path.suffix.lower() == ".html":
+                valid_files.append(file_path)
+            else:
+                print(f"Warning: PDP file not found or not HTML: {file_path}")
+        
+        if not valid_files:
+            print("Warning: No valid PDP files found in config. Falling back to active/ directory discovery.")
+            return discover_pdp_files_legacy(config_path.parent / "active")
+        
+        print(f"Loaded {len(valid_files)} PDPs from config file")
+        return valid_files
+        
+    except (json.JSONDecodeError, ValueError) as e:
+        print(f"Warning: Invalid PDP config file ({e}). Falling back to active/ directory discovery.")
+        return discover_pdp_files_legacy(config_path.parent / "active")
+
+
+def discover_pdp_files_legacy(pdp_dir: Path) -> List[str]:
+    """
+    Legacy PDP discovery from active/ directory.
+    Returns list of relative file paths from project root.
+    """
     if not pdp_dir.exists():
         return []
     # Include only .html files
     files = sorted([p for p in pdp_dir.iterdir() if p.is_file() and p.suffix.lower() == ".html"])
-    return files
+    # Convert to relative paths from project root
+    return [f.as_posix() for f in files]
 
 
-def map_local_to_urls(files: List[Path], base_url: str) -> List[str]:
+def map_local_to_urls(file_paths: List[str], base_url: str) -> List[str]:
+    """
+    Map local file paths to URLs.
+    
+    Args:
+        file_paths: List of relative file paths from project root (e.g., ["pdp_pages/page_1.html"])
+        base_url: Base URL for GitHub Pages
+    
+    Returns:
+        List of full URLs
+    """
     base = base_url.rstrip("/") + "/"
     urls = []
-    for p in files:
+    for file_path in file_paths:
         # Files are expected to be deployed at the repo root on GitHub Pages; mirror relative path under base URL
-        rel = p.as_posix()
-        urls.append(base + rel)
+        urls.append(base + file_path)
     return urls
 
 
@@ -485,14 +548,14 @@ def run_simulations(
     base_api_url = os.getenv("OPENAI_BASE_URL", "").strip() or None
     print(f"DEBUG: run_simulations - Base API URL: {base_api_url}")
 
-    # Discover PDP pages and map to URLs
-    print(f"DEBUG: run_simulations - Discovering PDP files in {PDP_DIR}")
-    files = discover_pdp_files(PDP_DIR)
-    print(f"DEBUG: run_simulations - Found {len(files)} PDP files: {[f.name for f in files]}")
-    if not files:
-        print(f"Warning: No PDP files found in {PDP_DIR}.", file=sys.stderr)
+    # Load PDP configuration and map to URLs
+    print(f"DEBUG: run_simulations - Loading PDP config from {PDP_CONFIG}")
+    file_paths = load_pdp_config(PDP_CONFIG)
+    print(f"DEBUG: run_simulations - Found {len(file_paths)} PDP files: {file_paths}")
+    if not file_paths:
+        print(f"Warning: No PDP files configured.", file=sys.stderr)
     
-    pdp_urls = map_local_to_urls(files, base_url)
+    pdp_urls = map_local_to_urls(file_paths, base_url)
     print(f"DEBUG: run_simulations - Mapped to {len(pdp_urls)} URLs")
     for i, url in enumerate(pdp_urls):
         print(f"DEBUG: run_simulations - URL {i+1}: {url}")
