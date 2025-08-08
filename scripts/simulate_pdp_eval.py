@@ -272,7 +272,12 @@ def call_model(
         init_openai()
 
     try:
-        client = OpenAI(api_key=api_key, base_url=base_url or None, timeout=timeout)
+        # Build client kwargs and include base_url only when provided (avoids passing None for type checkers)
+        client_kwargs = {"api_key": api_key, "timeout": timeout}
+        if base_url:
+            client_kwargs["base_url"] = base_url
+        assert OpenAI is not None
+        client = OpenAI(**client_kwargs)
         print(f"DEBUG: call_model - Created OpenAI client with base_url={base_url}")
         
         # Use Responses API with web_search_preview tool to validate URL accessibility
