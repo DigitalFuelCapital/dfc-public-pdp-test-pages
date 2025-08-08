@@ -1,19 +1,19 @@
 name,memory,prompt
-Budget-Conscious Ben,"Ben is a recent college graduate working his first full-time job. He is price-sensitive, watches for deals, and is comfortable with mainstream brands. He values practicality and getting good value for money.","Find me a good-value oxford shirt that looks decent for office wear without costing too much."
-Budget-Conscious Ben,"Ben is a recent college graduate working his first full-time job. He is price-sensitive, watches for deals, and is comfortable with mainstream brands. He values practicality and getting good value for money.","Which of these oxford shirts gives the best bang for the buck?"
-Budget-Conscious Ben,"Ben is a recent college graduate working his first full-time job. He is price-sensitive, watches for deals, and is comfortable with mainstream brands. He values practicality and getting good value for money.","Pick the most affordable oxford shirt that still has solid basics like decent fabric and returns."
-Quality-First Quinn,"Quinn is a mid-career professional who researches products carefully and prefers high-quality materials and construction. Will pay more for durability and craftsmanship. Familiar with traditional menswear terminology.","Choose the highest-quality oxford shirt based on fabric, weave, construction, and long-term durability."
-Quality-First Quinn,"Quinn is a mid-career professional who researches products carefully and prefers high-quality materials and construction. Will pay more for durability and craftsmanship. Familiar with traditional menswear terminology.","Select the oxford shirt with the best craftsmanship and fabric details, not just marketing claims."
-Quality-First Quinn,"Quinn is a mid-career professional who researches products carefully and prefers high-quality materials and construction. Will pay more for durability and craftsmanship. Familiar with traditional menswear terminology.","Among these PDPs, which oxford looks best built to last with reliable materials and stitching?"
-Fit-Focused Fiona,"Fiona is a fitness enthusiast who cares about how clothes fit and drape. She reads size charts and customer fit feedback, and prefers items with clear measurements and fit guidance. Works in a casual office.","Pick the oxford shirt PDP that provides the clearest sizing, fit notes, and measurement guidance for accurate ordering."
-Fit-Focused Fiona,"Fiona is a fitness enthusiast who cares about how clothes fit and drape. She reads size charts and customer fit feedback, and prefers items with clear measurements and fit guidance. Works in a casual office.","Which oxford shirt page has the best fit information (measurements, size charts, and fit reviews)?"
-Fit-Focused Fiona,"Fiona is a fitness enthusiast who cares about how clothes fit and drape. She reads size charts and customer fit feedback, and prefers items with clear measurements and fit guidance. Works in a casual office.","Choose the oxford shirt most likely to fit well based on the PDP's sizing guidance."
-Brand-Trust Taylor,"Taylor is a frequent online shopper who values reputable brands, transparent policies, and social proof. Pays attention to reviews, return policies, and brand story. Prefers reliable experiences.","Pick the oxford shirt from the brand/PDP that seems the most trustworthy with strong reviews and clear returns."
-Brand-Trust Taylor,"Taylor is a frequent online shopper who values reputable brands, transparent policies, and social proof. Pays attention to reviews, return policies, and brand story. Prefers reliable experiences.","Which PDP most convincingly signals reliability through reviews, brand info, and customer support details?"
-Brand-Trust Taylor,"Taylor is a frequent online shopper who values reputable brands, transparent policies, and social proof. Pays attention to reviews, return policies, and brand story. Prefers reliable experiences.","Select the oxford shirt PDP that feels most dependable to order from today."
-Eco-Minded Ellis,"Ellis is environmentally conscious and prefers products with sustainable materials, ethical sourcing, and certifications when available. Willing to pay a bit more for lower environmental impact.","Choose the oxford shirt with the strongest sustainability signals (materials, certifications, transparency)."
-Eco-Minded Ellis,"Ellis is environmentally conscious and prefers products with sustainable materials, ethical sourcing, and certifications when available. Willing to pay a bit more for lower environmental impact.","Which PDP best demonstrates eco-friendly practices for its oxford shirt?"
-Eco-Minded Ellis,"Ellis is environmentally conscious and prefers products with sustainable materials, ethical sourcing, and certifications when available. Willing to pay a bit more for lower environmental impact.","Pick the oxford shirt that appears most responsible from an environmental standpoint."
-Annonymous Albert,"no stored memory","Best oxford shirt?"
-Annonymous Albert,"no stored memory","What is the best oxford shirt?"
-Annonymous Albert,"no stored memory","Shop for oxford shirt"
+Ben,Ben is a recent college graduate working his first full-time job,Find me a good-value oxford shirt that looks decent for office wear without costing too much.
+Ben,Ben is a recent college graduate working his first full-time job,Which of these oxford shirts gives the best bang for the buck?
+Ben,Ben is a recent college graduate working his first full-time job,Please find me a great oxford shirt
+Quinn,Quinn is a mid-career professional who researches products carefully,Hiqh quality oxford shirts
+Quinn,Quinn is a mid-career professional who researches products carefully,Great oxford shirts
+Quinn,Quinn is a mid-career professional who researches products carefully,Reliable oxford shirts
+Frank,Frank is a fitness enthusiast,Good looking oxford shirts
+Frank,Frank is a fitness enthusiast,Mens oxford shirts
+Frank,Frank is a fitness enthusiast,Well fitting oxford shirts
+Albert,no stored memory,Best oxford shirt?
+Albert,no stored memory,What is the best oxford shirt?
+Albert,no stored memory,Shop for oxford shirt
+Albert,no stored memory,Best oxford shirt?
+Albert,no stored memory,What is the best oxford shirt?
+Albert,no stored memory,Shop for oxford shirt
+Albert,no stored memory,Best oxford shirt?
+Albert,no stored memory,What is the best oxford shirt?
+Albert,no stored memory,Shop for oxford shirt

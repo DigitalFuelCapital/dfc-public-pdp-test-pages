@@ -11,7 +11,7 @@ Summary:
   * Samples up to --max-pdp pages (default: all found) and shuffles order if --shuffle.
   * Calls OpenAI Responses API (model default 'gpt-5-2025-08-07') with the web_search_preview tool enabled to verify URL accessibility, then chooses the best PDP and provides a short justification + feature importance.
   * Expects JSON output with fields: chosen_url, justification, features (list of {name, weight, note}).
-- Writes per-run records to data/output/raw_runs.jsonl and aggregates to:
+- Writes per-run records incrementally to data/output/raw_runs.jsonl and aggregates to:
   * data/output/summary.csv (win counts per PDP)
   * data/output/feature_importance.csv (average feature weights per PDP and feature)
   * data/output/log.csv (run metadata)
@@ -48,6 +48,8 @@ import random
 import re
 import sys
 import time
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
@@ -343,6 +345,25 @@ def write_jsonl(path: Path, records: List[Dict[str, Any]]):
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
 
 
+# Thread-safe file writing lock
+_write_lock = threading.Lock()
+
+def append_jsonl(path: Path, record: Dict[str, Any]) -> None:
+    """
+    Thread-safe append of a single JSONL record with fsync for data preservation.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with _write_lock:
+        with path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+            f.flush()
+            try:
+                os.fsync(f.fileno())
+            except Exception:
+                # On some platforms/filesystems fsync may not be available or necessary
+                pass
+
+
 def write_csv_dicts(path: Path, rows: List[Dict[str, Any]], field_order: Optional[List[str]] = None):
     if not rows:
         # Create empty file with no rows but leave header unknown
@@ -356,6 +377,84 @@ def write_csv_dicts(path: Path, rows: List[Dict[str, Any]], field_order: Optiona
             writer.writerow(r)
 
 
+def run_single_simulation(
+    run_index: int,
+    shopper: ShopperPrompt,
+    pdp_urls: List[str],
+    model: str,
+    temperature: float,
+    timeout: int,
+    shuffle: bool,
+    max_pdp: Optional[int],
+    api_key: str,
+    base_api_url: Optional[str],
+    dry_run: bool,
+    raw_path: Path,
+) -> Dict[str, Any]:
+    """
+    Run a single simulation and return the record.
+    """
+    print(f"\nDEBUG: run_single_simulation - Starting run {run_index}")
+    
+    sample_urls = list(pdp_urls)
+    if shuffle:
+        random.shuffle(sample_urls)
+        print("DEBUG: run_single_simulation - URLs shuffled")
+    if max_pdp is not None and max_pdp > 0:
+        sample_urls = sample_urls[:max_pdp]
+        print(f"DEBUG: run_single_simulation - Limited to {len(sample_urls)} URLs")
+    
+    prompt = build_prompt(shopper, sample_urls)
+    print(f"DEBUG: run_single_simulation - Built prompt length: {len(prompt)}")
+
+    try:
+        print("DEBUG: run_single_simulation - Calling model...")
+        result = call_model(
+            api_key=api_key,
+            base_url=base_api_url,
+            model=model,
+            prompt=prompt,
+            temperature=temperature,
+            timeout=timeout,
+            dry_run=dry_run,
+        )
+        print(f"DEBUG: run_single_simulation - Model call successful")
+        
+        # Basic validation
+        chosen = result.get("chosen_url")
+        print(f"DEBUG: run_single_simulation - Chosen URL: {chosen}")
+        if chosen not in sample_urls:
+            print("DEBUG: run_single_simulation - Chosen URL not in candidates, attempting coercion")
+            # attempt to coerce by loose match
+            matches = [u for u in sample_urls if chosen and chosen.strip().lower() in u.lower()]
+            if matches:
+                print(f"DEBUG: run_single_simulation - Found match: {matches[0]}")
+                result["chosen_url"] = matches[0]
+            else:
+                print("DEBUG: run_single_simulation - No matches found for coercion")
+    except Exception as e:
+        print(f"DEBUG: run_single_simulation - Exception in run {run_index}: {type(e).__name__}: {e}")
+        result = {"error": str(e)}
+        
+    rec = {
+        "run_index": run_index,
+        "timestamp": int(time.time()),
+        "shopper_name": shopper.name,
+        "shopper_memory": shopper.memory,
+        "shopper_prompt": shopper.prompt,
+        "pdp_candidates": sample_urls,
+        "model": model,
+        "temperature": temperature,
+        "result": result,
+    }
+    
+    # Thread-safe append to JSONL
+    append_jsonl(raw_path, rec)
+    print(f"DEBUG: run_single_simulation - Run {run_index} completed and written")
+    
+    return rec
+
+
 def run_simulations(
     base_url: str,
     runs: int,
@@ -366,6 +465,7 @@ def run_simulations(
     max_pdp: Optional[int],
     shopper_name: Optional[str],
     dry_run: bool,
+    threads: int = 10,
 ) -> Dict[str, Path]:
     print(f"DEBUG: run_simulations - Starting with {runs} runs, dry_run={dry_run}")
     
@@ -410,71 +510,68 @@ def run_simulations(
     raw_records: List[Dict[str, Any]] = []
     start_ts = int(time.time())
 
-    for i in range(1, runs + 1):
-        print(f"\nDEBUG: run_simulations - Starting run {i}/{runs}")
+    print(f"DEBUG: run_simulations - Running {runs} simulations with {threads} threads")
+    
+    # Create futures for parallel execution
+    with ThreadPoolExecutor(max_workers=threads) as executor:
+        future_to_run = {}
         
-        shopper = random.choice(shoppers)
-        print(f"DEBUG: run_simulations - Selected shopper: {shopper.name}")
-        
-        sample_urls = list(pdp_urls)
-        if shuffle:
-            random.shuffle(sample_urls)
-            print("DEBUG: run_simulations - URLs shuffled")
-        if max_pdp is not None and max_pdp > 0:
-            sample_urls = sample_urls[:max_pdp]
-            print(f"DEBUG: run_simulations - Limited to {len(sample_urls)} URLs")
-        
-        prompt = build_prompt(shopper, sample_urls)
-        print(f"DEBUG: run_simulations - Built prompt length: {len(prompt)}")
-
-        try:
-            print("DEBUG: run_simulations - Calling model...")
-            result = call_model(
-                api_key=api_key or "",
-                base_url=base_api_url,
+        # Submit all runs to the thread pool
+        for i in range(1, runs + 1):
+            shopper = random.choice(shoppers)
+            print(f"DEBUG: run_simulations - Submitting run {i} with shopper: {shopper.name}")
+            
+            future = executor.submit(
+                run_single_simulation,
+                run_index=i,
+                shopper=shopper,
+                pdp_urls=pdp_urls,
                 model=model,
-                prompt=prompt,
                 temperature=temperature,
                 timeout=timeout,
+                shuffle=shuffle,
+                max_pdp=max_pdp,
+                api_key=api_key or "",
+                base_api_url=base_api_url,
                 dry_run=dry_run,
+                raw_path=raw_path,
             )
-            print(f"DEBUG: run_simulations - Model call successful")
-            
-            # Basic validation
-            chosen = result.get("chosen_url")
-            print(f"DEBUG: run_simulations - Chosen URL: {chosen}")
-            if chosen not in sample_urls:
-                print("DEBUG: run_simulations - Chosen URL not in candidates, attempting coercion")
-                # attempt to coerce by loose match
-                matches = [u for u in sample_urls if chosen and chosen.strip().lower() in u.lower()]
-                if matches:
-                    print(f"DEBUG: run_simulations - Found match: {matches[0]}")
-                    result["chosen_url"] = matches[0]
-                else:
-                    print("DEBUG: run_simulations - No matches found for coercion")
-        except Exception as e:
-            print(f"DEBUG: run_simulations - Exception in run {i}: {type(e).__name__}: {e}")
-            result = {"error": str(e)}
-            
-        rec = {
-            "run_index": i,
-            "timestamp": int(time.time()),
-            "shopper_name": shopper.name,
-            "shopper_memory": shopper.memory,
-            "shopper_prompt": shopper.prompt,
-            "pdp_candidates": sample_urls,
-            "model": model,
-            "temperature": temperature,
-            "result": result,
-        }
-        raw_records.append(rec)
-        print(f"DEBUG: run_simulations - Run {i} completed")
+            future_to_run[future] = i
+        
+        # Collect results as they complete
+        completed = 0
+        for future in as_completed(future_to_run):
+            run_index = future_to_run[future]
+            try:
+                rec = future.result()
+                raw_records.append(rec)
+                completed += 1
+                print(f"DEBUG: run_simulations - Completed {completed}/{runs} runs (run {run_index})")
+            except Exception as e:
+                print(f"DEBUG: run_simulations - Exception in future {run_index}: {type(e).__name__}: {e}")
+                # Create error record
+                error_rec = {
+                    "run_index": run_index,
+                    "timestamp": int(time.time()),
+                    "shopper_name": "UNKNOWN",
+                    "shopper_memory": "",
+                    "shopper_prompt": "",
+                    "pdp_candidates": [],
+                    "model": model,
+                    "temperature": temperature,
+                    "result": {"error": str(e)},
+                }
+                raw_records.append(error_rec)
+                append_jsonl(raw_path, error_rec)
+                completed += 1
+    
+    # Sort records by run_index for consistent output
+    raw_records.sort(key=lambda x: x.get("run_index", 0))
 
     print(f"\nDEBUG: run_simulations - All runs completed, writing outputs...")
     
-    # Write raw
-    write_jsonl(raw_path, raw_records)
-    print(f"DEBUG: run_simulations - Raw data written to {raw_path}")
+    # Raw JSONL was appended incrementally per run; no bulk write needed here.
+    print(f"DEBUG: run_simulations - Incremental JSONL appends already written to {raw_path}")
 
     # Aggregate
     summary_rows, feat_rows = aggregate_results(raw_records)
@@ -511,12 +608,13 @@ def main():
     parser = argparse.ArgumentParser(description="Simulate PDP evaluations with OpenAI.")
     parser.add_argument("--base-url", required=True, help="GitHub Pages base URL, e.g., https://digitalfuelcapital.github.io/dfc-public-pdp-test-pages/")
     parser.add_argument("--runs", type=int, default=100, help="Number of simulations to run")
-    parser.add_argument("--model", default="gpt-5-2025-08-07", help="OpenAI model name (default: gpt-5-2025-08-07)")
+    parser.add_argument("--model", default="gpt-5", help="OpenAI model name (default: gpt-5)")
     parser.add_argument("--temperature", type=float, default=1, help="Sampling temperature")
     parser.add_argument("--timeout", type=int, default=60, help="HTTP timeout seconds")
     parser.add_argument("--shuffle", action="store_true", help="Shuffle PDP list per run")
     parser.add_argument("--max-pdp", type=int, default=None, help="Limit number of PDPs sampled per run")
     parser.add_argument("--shopper-name", default=None, help="Filter to a specific shopper name")
+    parser.add_argument("--threads", type=int, default=10, help="Number of parallel threads for API calls (default: 10)")
     parser.add_argument("--dry-run", action="store_true", help="Do not call the API; generate mocked results")
     args = parser.parse_args()
 
@@ -530,6 +628,7 @@ def main():
         max_pdp=args.max_pdp,
         shopper_name=args.shopper_name,
         dry_run=args.dry_run,
+        threads=args.threads,
     )
     print("Wrote outputs:")
     for k, v in outputs.items():
