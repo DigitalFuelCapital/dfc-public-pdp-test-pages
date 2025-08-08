@@ -9,7 +9,7 @@ Summary:
 - Runs N simulations (default 100). Each run:
   * Selects a single shopper row (name + memory + a specific prompt) at random unless --shopper-name is provided.
   * Samples up to --max-pdp pages (default: all found) and shuffles order if --shuffle.
-  * Calls OpenAI Responses API (model default 'gpt-4o') with a single instruction: choose the best PDP for the prompt and provide a short justification + feature importance.
+  * Calls OpenAI Responses API (model default 'gpt-5-2025-08-07') with the web_search_preview tool enabled to verify URL accessibility, then chooses the best PDP and provides a short justification + feature importance.
   * Expects JSON output with fields: chosen_url, justification, features (list of {name, weight, note}).
 - Writes per-run records to data/output/raw_runs.jsonl and aggregates to:
   * data/output/summary.csv (win counts per PDP)
@@ -153,6 +153,8 @@ def build_prompt(shopper: ShopperPrompt, pdp_urls: List[str]) -> str:
         f"{pdp_lines}\n\n"
         "Instructions:\n"
         "- Examine only the information that would be visible by visiting those URLs.\n"
+        "- Use the web_search_preview tool to verify that each URL resolves and is accessible; prefer accessible pages and ignore any that cannot be reached.\n"
+        "- If none of the URLs are accessible, return a JSON object with \"chosen_url\": null and explain why in \"justification\".\n"
         "- Choose exactly one best PDP URL for the shopper's needs.\n"
         "- Provide a short justification.\n"
         "- Provide a list of features and a numeric weight for each (0-1) indicating importance for your decision.\n"
@@ -271,25 +273,34 @@ def call_model(
         client = OpenAI(api_key=api_key, base_url=base_url or None, timeout=timeout)
         print(f"DEBUG: call_model - Created OpenAI client with base_url={base_url}")
         
-        # Use Responses API for structured output tendency
+        # Use Responses API with web_search_preview tool to validate URL accessibility
         system_msg = (
             "You are a precise evaluator that outputs valid minified JSON only. "
             "Do not include markdown code fences or additional commentary."
         )
         
-        print(f"DEBUG: call_model - Sending request to model {model}")
-        response = client.chat.completions.create(
+        print(f"DEBUG: call_model - Sending request to model {model} using Responses API + web_search_preview")
+        response = client.responses.create(
             model=model,
-            messages=[
-                {"role": "system", "content": system_msg},
-                {"role": "user", "content": prompt},
-            ],
+            tools=[{"type": "web_search_preview"}],
+            input=f"{system_msg}\n\n{prompt}",
             temperature=temperature,
         )
         
-        text = response.choices[0].message.content or ""
-        print(f"DEBUG: call_model - Received response length: {len(text)}")
-        print(f"DEBUG: call_model - Raw response: {repr(text[:200])}")
+        text = getattr(response, "output_text", "") or ""
+        print(f"DEBUG: call_model - Received response output_text length: {len(text)}")
+        if not text:
+            # Fallback extraction for SDKs that don't expose output_text
+            try:
+                parts = []
+                for item in getattr(response, "output", []) or []:
+                    for c in getattr(item, "content", []) or []:
+                        if getattr(c, "type", "") == "output_text" and hasattr(c, "text"):
+                            parts.append(c.text)
+                text = "\n".join(parts)
+            except Exception as _:
+                text = ""
+        print(f"DEBUG: call_model - Raw response snippet: {repr((text or '')[:200])}")
         
         parsed = parse_model_json(text)
         print(f"DEBUG: call_model - Successfully parsed JSON")
@@ -500,8 +511,8 @@ def main():
     parser = argparse.ArgumentParser(description="Simulate PDP evaluations with OpenAI.")
     parser.add_argument("--base-url", required=True, help="GitHub Pages base URL, e.g., https://digitalfuelcapital.github.io/dfc-public-pdp-test-pages/")
     parser.add_argument("--runs", type=int, default=100, help="Number of simulations to run")
-    parser.add_argument("--model", default="gpt-4o", help="OpenAI model name (default: gpt-4o)")
-    parser.add_argument("--temperature", type=float, default=0.2, help="Sampling temperature")
+    parser.add_argument("--model", default="gpt-5-2025-08-07", help="OpenAI model name (default: gpt-5-2025-08-07)")
+    parser.add_argument("--temperature", type=float, default=1, help="Sampling temperature")
     parser.add_argument("--timeout", type=int, default=60, help="HTTP timeout seconds")
     parser.add_argument("--shuffle", action="store_true", help="Shuffle PDP list per run")
     parser.add_argument("--max-pdp", type=int, default=None, help="Limit number of PDPs sampled per run")
