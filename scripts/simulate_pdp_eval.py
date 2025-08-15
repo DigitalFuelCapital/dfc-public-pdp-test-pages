@@ -24,7 +24,6 @@ CLI options:
 - --base-url: Required base URL where GitHub Pages hosts the PDPs.
 - --runs: Number of simulations (default 100)
 - --model: Model name (default 'gpt-4o')
-- --temperature: Decoding temperature (default 0.2)
 - --timeout: HTTP timeout seconds per call (default 60)
 - --shuffle: Shuffle PDP list before each run (flag)
 - --max-pdp: Limit number of PDPs sampled per run (default: use all found)
@@ -298,7 +297,6 @@ def call_model(
     base_url: Optional[str],
     model: str,
     prompt: str,
-    temperature: float,
     timeout: int,
     dry_run: bool = False,
 ) -> Dict[str, Any]:
@@ -354,7 +352,6 @@ def call_model(
             model=model,
             tools=[{"type": "web_search_preview"}],
             input=f"{system_msg}\n\n{prompt}",
-            temperature=temperature,
         )
         
         text = getattr(response, "output_text", "") or ""
@@ -482,7 +479,6 @@ def run_single_simulation(
     shopper: ShopperPrompt,
     pdp_urls: List[str],
     model: str,
-    temperature: float,
     timeout: int,
     shuffle: bool,
     max_pdp: Optional[int],
@@ -515,7 +511,6 @@ def run_single_simulation(
             base_url=base_api_url,
             model=model,
             prompt=prompt,
-            temperature=temperature,
             timeout=timeout,
             dry_run=dry_run,
         )
@@ -545,7 +540,6 @@ def run_single_simulation(
         "shopper_prompt": shopper.prompt,
         "pdp_candidates": sample_urls,
         "model": model,
-        "temperature": temperature,
         "test_name": test_name,
         "result": result,
     }
@@ -561,7 +555,6 @@ def run_simulations(
     base_url: str,
     runs: int,
     model: str,
-    temperature: float,
     timeout: int,
     shuffle: bool,
     max_pdp: Optional[int],
@@ -635,8 +628,7 @@ def run_simulations(
                 shopper=shopper,
                 pdp_urls=pdp_urls,
                 model=model,
-                temperature=temperature,
-                timeout=timeout,
+                    timeout=timeout,
                 shuffle=shuffle,
                 max_pdp=max_pdp,
                 api_key=api_key or "",
@@ -667,8 +659,7 @@ def run_simulations(
                     "shopper_prompt": "",
                     "pdp_candidates": [],
                     "model": model,
-                    "temperature": temperature,
-                    "test_name": test_name,
+                                "test_name": test_name,
                     "result": {"error": str(e)},
                 }
                 raw_records.append(error_rec)
@@ -710,7 +701,6 @@ def run_simulations(
         "n_pdp": len(pdp_urls),
         "n_shopper_rows": len(shoppers),
         "model": model,
-        "temperature": temperature,
         "base_url": base_url,
         "shuffle": shuffle,
         "max_pdp": max_pdp if max_pdp is not None else "",
@@ -719,7 +709,7 @@ def run_simulations(
     }]
     
     # Append to log instead of overwriting
-    log_field_order = ["start_ts", "end_ts", "runs", "n_pdp", "n_shopper_rows", "model", "temperature", "base_url", "shuffle", "max_pdp", "test_name", "dry_run"]
+    log_field_order = ["start_ts", "end_ts", "runs", "n_pdp", "n_shopper_rows", "model", "base_url", "shuffle", "max_pdp", "test_name", "dry_run"]
     append_csv_dicts(log_path, log_rows, field_order=log_field_order)
     print(f"DEBUG: run_simulations - Log appended")
 
@@ -736,7 +726,6 @@ def main():
     parser.add_argument("--base-url", default="https://digitalfuelcapital.github.io/dfc-public-pdp-test-pages/", help="GitHub Pages base URL, e.g., https://digitalfuelcapital.github.io/dfc-public-pdp-test-pages/")
     parser.add_argument("--runs", type=int, default=30, help="Number of simulations to run")
     parser.add_argument("--model", default="gpt-5-mini", help="OpenAI model name (default: gpt-5-min)")
-    parser.add_argument("--temperature", type=float, default=1, help="Sampling temperature")
     parser.add_argument("--timeout", type=int, default=60, help="HTTP timeout seconds")
     parser.add_argument("--shuffle", action="store_true", help="Shuffle PDP list per run")
     parser.add_argument("--max-pdp", type=int, default=None, help="Limit number of PDPs sampled per run")
@@ -749,7 +738,6 @@ def main():
         base_url=args.base_url,
         runs=args.runs,
         model=args.model,
-        temperature=args.temperature,
         timeout=args.timeout,
         shuffle=args.shuffle,
         max_pdp=args.max_pdp,

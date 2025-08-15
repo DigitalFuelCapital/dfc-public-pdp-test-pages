@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Dump run_index, shopper_name, test_name, chosen_url and justification from a JSONL run log to CSV.
+Dump run_index, shopper_name, test_name, model, datetime, chosen_url and justification from a JSONL run log to CSV.
 
 Default input: data/output/raw_runs.jsonl
 Default output: data/output/chosen_justifications.csv
@@ -15,18 +15,31 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, Tuple
 
 
-def _extract_fields(rec: Dict[str, Any]) -> Tuple[Any, str, str, str, str]:
+def _extract_fields(rec: Dict[str, Any]) -> Tuple[Any, str, str, str, str, str, str]:
     """
-    Safely extract (run_index, shopper_name, test_name, chosen_url, justification) from one JSON record.
+    Safely extract (run_index, shopper_name, test_name, model, datetime, chosen_url, justification) from one JSON record.
     Returns empty strings for missing values.
     """
     run_index = rec.get("run_index", "")
     shopper_name = rec.get("shopper_name") or ""
     test_name = rec.get("test_name") or ""
+    model = rec.get("model") or ""
+    
+    # Convert timestamp to readable datetime
+    timestamp = rec.get("timestamp", "")
+    datetime_str = ""
+    if timestamp:
+        try:
+            dt = datetime.fromtimestamp(int(timestamp))
+            datetime_str = dt.strftime("%Y-%m-%d %H:%M:%S")
+        except (ValueError, TypeError):
+            datetime_str = str(timestamp)
+    
     result = rec.get("result") or {}
 
     chosen_url = ""
@@ -41,7 +54,7 @@ def _extract_fields(rec: Dict[str, Any]) -> Tuple[Any, str, str, str, str]:
     if isinstance(justification, str):
         justification = " ".join(justification.split())
 
-    return run_index, str(shopper_name), str(test_name), str(chosen_url), justification
+    return run_index, str(shopper_name), str(test_name), str(model), datetime_str, str(chosen_url), justification
 
 
 def read_jsonl(path: Path) -> Iterable[Dict[str, Any]]:
@@ -67,20 +80,20 @@ def read_jsonl(path: Path) -> Iterable[Dict[str, Any]]:
             yield obj
 
 
-def write_csv(rows: Iterable[Tuple[Any, str, str, str, str]], out_path: Path) -> None:
+def write_csv(rows: Iterable[Tuple[Any, str, str, str, str, str, str]], out_path: Path) -> None:
     """
-    Write rows to CSV with header: run_index,shopper_name,test_name,chosen_url,justification
+    Write rows to CSV with header: run_index,shopper_name,test_name,model,datetime,chosen_url,justification
     """
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with out_path.open("w", encoding="utf-8", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["run_index", "shopper_name", "test_name", "chosen_url", "justification"])
+        writer.writerow(["run_index", "shopper_name", "test_name", "model", "datetime", "chosen_url", "justification"])
         for row in rows:
             writer.writerow(row)
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Dump run_index, shopper_name, test_name, chosen_url and justification from raw_runs.jsonl to CSV.")
+    parser = argparse.ArgumentParser(description="Dump run_index, shopper_name, test_name, model, datetime, chosen_url and justification from raw_runs.jsonl to CSV.")
     parser.add_argument(
         "--input",
         "-i",

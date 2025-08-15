@@ -24,7 +24,6 @@ Configuration format:
   "default_settings": {
     "runs": 100,
     "model": "gpt-4o",
-    "temperature": 0.2,
     ...
   }
 }
@@ -38,7 +37,6 @@ CLI options:
 - --base-url: Required base URL where GitHub Pages hosts the PDPs
 - --runs: Number of simulations per test (overrides config default)
 - --model: Model name (overrides config default)
-- --temperature: Decoding temperature (overrides config default)
 - --timeout: HTTP timeout seconds per call (overrides config default)
 - --shuffle: Shuffle PDP list before each run (overrides config default)
 - --max-pdp: Limit number of PDPs sampled per run (overrides config default)
@@ -150,7 +148,6 @@ def execute_multiple_tests(
     base_url: str,
     runs: Optional[int] = None,
     model: Optional[str] = None,
-    temperature: Optional[float] = None,
     timeout: Optional[int] = None,
     shuffle: Optional[bool] = None,
     max_pdp: Optional[int] = None,
@@ -174,7 +171,6 @@ def execute_multiple_tests(
     effective_settings = {
         "runs": runs if runs is not None else default_settings.get("runs", 30),
         "model": model if model is not None else default_settings.get("model", "gpt-5-mini"),
-        "temperature": temperature if temperature is not None else default_settings.get("temperature", 1),
         "timeout": timeout if timeout is not None else default_settings.get("timeout", 60),
         "shuffle": shuffle if shuffle is not None else default_settings.get("shuffle", False),
         "max_pdp": max_pdp if max_pdp is not None else default_settings.get("max_pdp", None),
@@ -224,7 +220,6 @@ def execute_multiple_tests(
                 base_url=base_url,
                 runs=effective_settings["runs"],
                 model=effective_settings["model"],
-                temperature=effective_settings["temperature"],
                 timeout=effective_settings["timeout"],
                 shuffle=effective_settings["shuffle"],
                 max_pdp=effective_settings["max_pdp"],
@@ -297,7 +292,6 @@ def main():
     parser.add_argument("--base-url", default="https://digitalfuelcapital.github.io/dfc-public-pdp-test-pages/", help="GitHub Pages base URL, e.g., https://digitalfuelcapital.github.io/dfc-public-pdp-test-pages/")
     parser.add_argument("--runs", type=int, help="Number of simulations per test (overrides config)")
     parser.add_argument("--model", help="OpenAI model name (overrides config)")
-    parser.add_argument("--temperature", type=float, help="Sampling temperature (overrides config)")
     parser.add_argument("--timeout", type=int, help="HTTP timeout seconds (overrides config)")
     parser.add_argument("--shuffle", action="store_true", help="Shuffle PDP list per run (overrides config)")
     parser.add_argument("--max-pdp", type=int, help="Limit number of PDPs sampled per run (overrides config)")
@@ -315,7 +309,6 @@ def main():
             base_url=args.base_url,
             runs=args.runs,
             model=args.model,
-            temperature=args.temperature,
             timeout=args.timeout,
             shuffle=args.shuffle if args.shuffle else None,
             max_pdp=args.max_pdp,
