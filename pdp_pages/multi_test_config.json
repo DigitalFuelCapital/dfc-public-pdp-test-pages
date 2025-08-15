@@ -1,0 +1,61 @@
+{
+  "tests": [
+    {
+      "test_name": "baseline_test",
+      "description": "Test baseline PDPs without UVP variants",
+      "active_pdps": [
+        "pdp_pages/active/pdp_oxford_alpine_and_oak.html",
+        "pdp_pages/active/pdp_oxford_cedar_and_loom.html",
+        "pdp_pages/active/pdp_oxford_mariner_supply.html",
+        "pdp_pages/active/pdp_oxford_riverfoundry.html",
+        "pdp_pages/active/pdp_oxford_stonebridge_outfitters.html",
+        "pdp_pages/active/pdp_oxford_whitestone_provisioners.html"
+      ]
+    },
+    {
+      "test_name": "riverfoundry_uvp",
+      "description": "Test with riverfoundry UVP variant",
+      "active_pdps": [
+        "pdp_pages/active/pdp_oxford_alpine_and_oak.html",
+        "pdp_pages/active/pdp_oxford_cedar_and_loom.html",
+        "pdp_pages/active/pdp_oxford_harbor_and_field.html",
+        "pdp_pages/active/pdp_oxford_mariner_supply.html",
+        "pdp_pages/active/pdp_oxford_riverfoundry_uvp.html",
+        "pdp_pages/active/pdp_oxford_whitestone_provisioners.html"
+      ]
+    },
+    {
+      "test_name": "alpineandoak_uvp",
+      "description": "Test with alpineoak UVP variants",
+      "active_pdps": [
+        "pdp_pages/active/pdp_oxford_alpine_and_oak_uvp.html",
+        "pdp_pages/active/pdp_oxford_cedar_and_loom.html",
+        "pdp_pages/active/pdp_oxford_harbor_and_field.html",
+        "pdp_pages/active/pdp_oxford_mariner_supply.html",
+        "pdp_pages/active/pdp_oxford_riverfoundry.html",
+        "pdp_pages/active/pdp_oxford_whitestone_provisioners.html"
+      ]
+    },
+    {
+      "test_name": "harborandfield_uvp",
+      "description": "Test with harborfield UVP variants",
+      "active_pdps": [
+        "pdp_pages/active/pdp_oxford_alpine_and_oak.html",
+        "pdp_pages/active/pdp_oxford_cedar_and_loom.html",
+        "pdp_pages/active/pdp_oxford_harbor_and_field_uvp.html",
+        "pdp_pages/active/pdp_oxford_mariner_supply.html",
+        "pdp_pages/active/pdp_oxford_riverfoundry.html",
+        "pdp_pages/active/pdp_oxford_whitestone_provisioners.html"
+      ]
+    }
+  ],
+  "default_settings": {
+    "runs": 50,
+    "model": "gpt-5-mini",
+    "temperature": 1,
+    "timeout": 60,
+    "shuffle": true,
+    "max_pdp": null,
+    "threads": 10
+  }
+}

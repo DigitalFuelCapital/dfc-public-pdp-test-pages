@@ -381,7 +381,7 @@ def call_model(
         raise
 
 
-def aggregate_results(raw_records: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+def aggregate_results(raw_records: List[Dict[str, Any]], test_name: Optional[str] = None, timestamp: Optional[int] = None) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
     # summary: win counts per PDP
     win_counts: Dict[str, int] = {}
     # feature importance: average weights per PDP and feature
@@ -398,11 +398,24 @@ def aggregate_results(raw_records: List[Dict[str, Any]]) -> Tuple[List[Dict[str,
             if chosen and name:
                 feature_accum.setdefault((chosen, name), []).append(w)
 
-    summary_rows = [{"pdp_url": url, "wins": wins} for url, wins in sorted(win_counts.items(), key=lambda x: -x[1])]
+    summary_rows = []
+    for url, wins in sorted(win_counts.items(), key=lambda x: -x[1]):
+        row = {"pdp_url": url, "wins": wins}
+        if test_name is not None:
+            row["test_name"] = test_name
+        if timestamp is not None:
+            row["timestamp"] = timestamp
+        summary_rows.append(row)
+    
     feat_rows: List[Dict[str, Any]] = []
     for (url, feat), weights in sorted(feature_accum.items()):
         avg = sum(weights) / len(weights) if weights else 0.0
-        feat_rows.append({"pdp_url": url, "feature": feat, "avg_weight": round(avg, 4), "n": len(weights)})
+        row = {"pdp_url": url, "feature": feat, "avg_weight": round(avg, 4), "n": len(weights)}
+        if test_name is not None:
+            row["test_name"] = test_name
+        if timestamp is not None:
+            row["timestamp"] = timestamp
+        feat_rows.append(row)
 
     return summary_rows, feat_rows
 
@@ -445,6 +458,25 @@ def write_csv_dicts(path: Path, rows: List[Dict[str, Any]], field_order: Optiona
             writer.writerow(r)
 
 
+def append_csv_dicts(path: Path, rows: List[Dict[str, Any]], field_order: Optional[List[str]] = None):
+    """
+    Append rows to CSV file. If file doesn't exist, create it with headers.
+    If file exists, append without headers.
+    """
+    if not rows:
+        return
+    
+    fields = field_order or list(rows[0].keys())
+    file_exists = path.exists()
+    
+    with path.open("a", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fields)
+        if not file_exists:
+            writer.writeheader()
+        for r in rows:
+            writer.writerow(r)
+
+
 def run_single_simulation(
     run_index: int,
     shopper: ShopperPrompt,
@@ -458,6 +490,7 @@ def run_single_simulation(
     base_api_url: Optional[str],
     dry_run: bool,
     raw_path: Path,
+    test_name: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Run a single simulation and return the record.
@@ -513,6 +546,7 @@ def run_single_simulation(
         "pdp_candidates": sample_urls,
         "model": model,
         "temperature": temperature,
+        "test_name": test_name,
         "result": result,
     }
     
@@ -534,6 +568,8 @@ def run_simulations(
     shopper_name: Optional[str],
     dry_run: bool,
     threads: int = 10,
+    test_name: Optional[str] = None,
+    pdp_file_paths: Optional[List[str]] = None,
 ) -> Dict[str, Path]:
     print(f"DEBUG: run_simulations - Starting with {runs} runs, dry_run={dry_run}")
     
@@ -549,9 +585,13 @@ def run_simulations(
     print(f"DEBUG: run_simulations - Base API URL: {base_api_url}")
 
     # Load PDP configuration and map to URLs
-    print(f"DEBUG: run_simulations - Loading PDP config from {PDP_CONFIG}")
-    file_paths = load_pdp_config(PDP_CONFIG)
-    print(f"DEBUG: run_simulations - Found {len(file_paths)} PDP files: {file_paths}")
+    if pdp_file_paths is not None:
+        file_paths = pdp_file_paths
+        print(f"DEBUG: run_simulations - Using provided PDP file paths: {len(file_paths)} files")
+    else:
+        print(f"DEBUG: run_simulations - Loading PDP config from {PDP_CONFIG}")
+        file_paths = load_pdp_config(PDP_CONFIG)
+        print(f"DEBUG: run_simulations - Found {len(file_paths)} PDP files: {file_paths}")
     if not file_paths:
         print(f"Warning: No PDP files configured.", file=sys.stderr)
     
@@ -603,6 +643,7 @@ def run_simulations(
                 base_api_url=base_api_url,
                 dry_run=dry_run,
                 raw_path=raw_path,
+                test_name=test_name,
             )
             future_to_run[future] = i
         
@@ -627,6 +668,7 @@ def run_simulations(
                     "pdp_candidates": [],
                     "model": model,
                     "temperature": temperature,
+                    "test_name": test_name,
                     "result": {"error": str(e)},
                 }
                 raw_records.append(error_rec)
@@ -642,10 +684,23 @@ def run_simulations(
     print(f"DEBUG: run_simulations - Incremental JSONL appends already written to {raw_path}")
 
     # Aggregate
-    summary_rows, feat_rows = aggregate_results(raw_records)
-    write_csv_dicts(summary_path, summary_rows, field_order=["pdp_url", "wins"])
-    write_csv_dicts(features_path, feat_rows, field_order=["pdp_url", "feature", "avg_weight", "n"])
-    print(f"DEBUG: run_simulations - Summary and features written")
+    summary_rows, feat_rows = aggregate_results(raw_records, test_name=test_name, timestamp=start_ts)
+    
+    # Determine field order based on whether we have test_name and timestamp
+    summary_field_order = ["pdp_url", "wins"]
+    features_field_order = ["pdp_url", "feature", "avg_weight", "n"]
+    
+    if test_name is not None:
+        summary_field_order.append("test_name")
+        features_field_order.append("test_name")
+    if start_ts is not None:
+        summary_field_order.append("timestamp")
+        features_field_order.append("timestamp")
+    
+    # Append to CSV files instead of overwriting
+    append_csv_dicts(summary_path, summary_rows, field_order=summary_field_order)
+    append_csv_dicts(features_path, feat_rows, field_order=features_field_order)
+    print(f"DEBUG: run_simulations - Summary and features appended to CSV files")
 
     # Log
     log_rows = [{
@@ -659,10 +714,14 @@ def run_simulations(
         "base_url": base_url,
         "shuffle": shuffle,
         "max_pdp": max_pdp if max_pdp is not None else "",
+        "test_name": test_name if test_name is not None else "",
         "dry_run": dry_run,
     }]
-    write_csv_dicts(log_path, log_rows)
-    print(f"DEBUG: run_simulations - Log written")
+    
+    # Append to log instead of overwriting
+    log_field_order = ["start_ts", "end_ts", "runs", "n_pdp", "n_shopper_rows", "model", "temperature", "base_url", "shuffle", "max_pdp", "test_name", "dry_run"]
+    append_csv_dicts(log_path, log_rows, field_order=log_field_order)
+    print(f"DEBUG: run_simulations - Log appended")
 
     return {
         "raw": raw_path,
@@ -674,9 +733,9 @@ def run_simulations(
 
 def main():
     parser = argparse.ArgumentParser(description="Simulate PDP evaluations with OpenAI.")
-    parser.add_argument("--base-url", required=True, help="GitHub Pages base URL, e.g., https://digitalfuelcapital.github.io/dfc-public-pdp-test-pages/")
-    parser.add_argument("--runs", type=int, default=100, help="Number of simulations to run")
-    parser.add_argument("--model", default="gpt-5", help="OpenAI model name (default: gpt-5)")
+    parser.add_argument("--base-url", default="https://digitalfuelcapital.github.io/dfc-public-pdp-test-pages/", help="GitHub Pages base URL, e.g., https://digitalfuelcapital.github.io/dfc-public-pdp-test-pages/")
+    parser.add_argument("--runs", type=int, default=30, help="Number of simulations to run")
+    parser.add_argument("--model", default="gpt-5-mini", help="OpenAI model name (default: gpt-5-min)")
     parser.add_argument("--temperature", type=float, default=1, help="Sampling temperature")
     parser.add_argument("--timeout", type=int, default=60, help="HTTP timeout seconds")
     parser.add_argument("--shuffle", action="store_true", help="Shuffle PDP list per run")
