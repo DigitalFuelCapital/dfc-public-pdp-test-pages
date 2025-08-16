@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PDP Test Pages Directory | AI Analytics</title>
+  <meta name="description" content="Directory of Product Detail Pages for AI evaluation testing">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <style>
+    :root { 
+      --text: #222; 
+      --muted: #666; 
+      --border: #e1e1e1; 
+      --panel: #f7f9fc; 
+      --header-bg: #f5f5f5;
+      --link: #0066cc;
+      --link-hover: #004499;
+    }
+    
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0; 
+      color: var(--text); 
+      line-height: 1.5; 
+      background: #fafafa;
+    }
+    
+    .container { 
+      max-width: 1200px; 
+      margin: 0 auto; 
+      padding: 20px; 
+    }
+    
+    h1 { 
+      margin: 0 0 10px; 
+      font-size: 2.5rem; 
+      font-weight: 600;
+      color: var(--text);
+    }
+    
+    .subtitle {
+      color: var(--muted);
+      font-size: 1.1rem;
+      margin-bottom: 30px;
+    }
+    
+    .stats {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 30px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    
+    .stat-item {
+      text-align: center;
+    }
+    
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--link);
+    }
+    
+    .stat-label {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    
+    table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    th, td { 
+      padding: 12px 16px; 
+      text-align: left; 
+      border-bottom: 1px solid var(--border); 
+    }
+    
+    th { 
+      background: var(--header-bg); 
+      font-weight: 600;
+      color: var(--text);
+      position: sticky;
+      top: 0;
+    }
+    
+    tr:hover td {
+      background: var(--panel);
+    }
+    
+    .brand {
+      font-weight: 600;
+    }
+    
+    .variant {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    
+    .variant.baseline { background: #e3f2fd; color: #1565c0; }
+    .variant.reviews { background: #f3e5f5; color: #7b1fa2; }
+    .variant.images { background: #e8f5e8; color: #2e7d32; }
+    .variant.no-schema { background: #fff3e0; color: #ef6c00; }
+    .variant.qa { background: #fce4ec; color: #c2185b; }
+    .variant.qa-hidden { background: #f1f8e9; color: #558b2f; }
+    .variant.uvp { background: #e0f2f1; color: #00695c; }
+    
+    .link {
+      color: var(--link);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    
+    .link:hover {
+      color: var(--link-hover);
+      text-decoration: underline;
+    }
+    
+    .description {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 4px;
+    }
+    
+    .filter-section {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    .filter-label {
+      font-weight: 600;
+      color: var(--text);
+    }
+    
+    select {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: white;
+      font-size: 0.9rem;
+    }
+    
+    .footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.9rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>PDP Test Pages Directory</h1>
+    <p class="subtitle">Product Detail Pages for AI Evaluation Testing</p>
+    
+    <div class="stats">
+      <div class="stat-item">
+        <div class="stat-number">25</div>
+        <div class="stat-label">Total PDPs</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">6</div>
+        <div class="stat-label">Brands</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">7</div>
+        <div class="stat-label">Variant Types</div>
+      </div>
+    </div>
+    
+    <div class="filter-section">
+      <span class="filter-label">Filter by:</span>
+      <select id="brandFilter" onchange="filterTable()">
+        <option value="">All Brands</option>
+        <option value="Alpine & Oak">Alpine & Oak</option>
+        <option value="Cedar & Loom">Cedar & Loom</option>
+        <option value="Harbor & Field Co.">Harbor & Field Co.</option>
+        <option value="Mariner Supply">Mariner Supply</option>
+        <option value="RiverFoundry">RiverFoundry</option>
+        <option value="Stonebridge Outfitters">Stonebridge Outfitters</option>
+        <option value="Whitestone Provisioners">Whitestone Provisioners</option>
+      </select>
+      
+      <select id="variantFilter" onchange="filterTable()">
+        <option value="">All Variants</option>
+        <option value="baseline">Baseline</option>
+        <option value="reviews">Reviews</option>
+        <option value="images">Images</option>
+        <option value="no-schema">No Schema</option>
+        <option value="qa">Q&A Visible</option>
+        <option value="qa-hidden">Q&A Hidden</option>
+        <option value="uvp">UVP</option>
+      </select>
+    </div>
+    
+    <table id="pdpTable">
+      <thead>
+        <tr>
+          <th>Brand</th>
+          <th>Variant</th>
+          <th>File Name</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Alpine & Oak -->
+        <tr>
+          <td class="brand">Alpine & Oak</td>
+          <td><span class="variant baseline">Baseline</span></td>
+          <td><a href="pdp_oxford_alpine_and_oak.html" class="link">pdp_oxford_alpine_and_oak.html</a></td>
+          <td class="description">Standard Alpine & Oak oxford shirt with heritage tailoring</td>
+        </tr>
+        <tr>
+          <td class="brand">Alpine & Oak</td>
+          <td><span class="variant images">Images</span></td>
+          <td><a href="pdp_oxford_alpine_and_oak_images.html" class="link">pdp_oxford_alpine_and_oak_images.html</a></td>
+          <td class="description">With real product images instead of placeholders</td>
+        </tr>
+        <tr>
+          <td class="brand">Alpine & Oak</td>
+          <td><span class="variant no-schema">No Schema</span></td>
+          <td><a href="pdp_oxford_alpine_and_oak_no_schema.html" class="link">pdp_oxford_alpine_and_oak_no_schema.html</a></td>
+          <td class="description">Without structured data markup</td>
+        </tr>
+        <tr>
+          <td class="brand">Alpine & Oak</td>
+          <td><span class="variant qa">Q&A Visible</span></td>
+          <td><a href="pdp_oxford_alpine_and_oak_qa.html" class="link">pdp_oxford_alpine_and_oak_qa.html</a></td>
+          <td class="description">With expanded user type recommendations (visible)</td>
+        </tr>
+        <tr>
+          <td class="brand">Alpine & Oak</td>
+          <td><span class="variant qa-hidden">Q&A Hidden</span></td>
+          <td><a href="pdp_oxford_alpine_and_oak_qa_hidden.html" class="link">pdp_oxford_alpine_and_oak_qa_hidden.html</a></td>
+          <td class="description">With expanded user type recommendations (hidden by default)</td>
+        </tr>
+        <tr>
+          <td class="brand">Alpine & Oak</td>
+          <td><span class="variant reviews">Reviews</span></td>
+          <td><a href="pdp_oxford_alpine_and_oak_reviews.html" class="link">pdp_oxford_alpine_and_oak_reviews.html</a></td>
+          <td class="description">With detailed customer reviews</td>
+        </tr>
+        <tr>
+          <td class="brand">Alpine & Oak</td>
+          <td><span class="variant uvp">UVP</span></td>
+          <td><a href="pdp_oxford_alpine_and_oak_uvp.html" class="link">pdp_oxford_alpine_and_oak_uvp.html</a></td>
+          <td class="description">With unique value proposition enhancements</td>
+        </tr>
+        
+        <!-- Cedar & Loom -->
+        <tr>
+          <td class="brand">Cedar & Loom</td>
+          <td><span class="variant baseline">Baseline</span></td>
+          <td><a href="pdp_oxford_cedar_and_loom.html" class="link">pdp_oxford_cedar_and_loom.html</a></td>
+          <td class="description">Standard Cedar & Loom oxford shirt</td>
+        </tr>
+        
+        <!-- Harbor & Field Co. -->
+        <tr>
+          <td class="brand">Harbor & Field Co.</td>
+          <td><span class="variant baseline">Baseline</span></td>
+          <td><a href="pdp_oxford_harbor_and_field.html" class="link">pdp_oxford_harbor_and_field.html</a></td>
+          <td class="description">Standard Harbor & Field Co. coastal-inspired oxford</td>
+        </tr>
+        <tr>
+          <td class="brand">Harbor & Field Co.</td>
+          <td><span class="variant images">Images</span></td>
+          <td><a href="pdp_oxford_harbor_and_field_images.html" class="link">pdp_oxford_harbor_and_field_images.html</a></td>
+          <td class="description">With real product images instead of placeholders</td>
+        </tr>
+        <tr>
+          <td class="brand">Harbor & Field Co.</td>
+          <td><span class="variant no-schema">No Schema</span></td>
+          <td><a href="pdp_oxford_harbor_and_field_no_schema.html" class="link">pdp_oxford_harbor_and_field_no_schema.html</a></td>
+          <td class="description">Without structured data markup</td>
+        </tr>
+        <tr>
+          <td class="brand">Harbor & Field Co.</td>
+          <td><span class="variant qa">Q&A Visible</span></td>
+          <td><a href="pdp_oxford_harbor_and_field_qa.html" class="link">pdp_oxford_harbor_and_field_qa.html</a></td>
+          <td class="description">With expanded industry-specific guidance (visible)</td>
+        </tr>
+        <tr>
+          <td class="brand">Harbor & Field Co.</td>
+          <td><span class="variant qa-hidden">Q&A Hidden</span></td>
+          <td><a href="pdp_oxford_harbor_and_field_qa_hidden.html" class="link">pdp_oxford_harbor_and_field_qa_hidden.html</a></td>
+          <td class="description">With expanded industry-specific guidance (hidden by default)</td>
+        </tr>
+        <tr>
+          <td class="brand">Harbor & Field Co.</td>
+          <td><span class="variant reviews">Reviews</span></td>
+          <td><a href="pdp_oxford_harbor_and_field_reviews.html" class="link">pdp_oxford_harbor_and_field_reviews.html</a></td>
+          <td class="description">With detailed customer reviews</td>
+        </tr>
+        <tr>
+          <td class="brand">Harbor & Field Co.</td>
+          <td><span class="variant uvp">UVP</span></td>
+          <td><a href="pdp_oxford_harbor_and_field_uvp.html" class="link">pdp_oxford_harbor_and_field_uvp.html</a></td>
+          <td class="description">With unique value proposition enhancements</td>
+        </tr>
+        
+        <!-- Mariner Supply -->
+        <tr>
+          <td class="brand">Mariner Supply</td>
+          <td><span class="variant baseline">Baseline</span></td>
+          <td><a href="pdp_oxford_mariner_supply.html" class="link">pdp_oxford_mariner_supply.html</a></td>
+          <td class="description">Standard Mariner Supply oxford shirt</td>
+        </tr>
+        <tr>
+          <td class="brand">Mariner Supply</td>
+          <td><span class="variant uvp">UVP</span></td>
+          <td><a href="pdp_oxford_mariner_supply_uvp.html" class="link">pdp_oxford_mariner_supply_uvp.html</a></td>
+          <td class="description">With unique value proposition enhancements</td>
+        </tr>
+        
+        <!-- RiverFoundry -->
+        <tr>
+          <td class="brand">RiverFoundry</td>
+          <td><span class="variant baseline">Baseline</span></td>
+          <td><a href="pdp_oxford_riverfoundry.html" class="link">pdp_oxford_riverfoundry.html</a></td>
+          <td class="description">Standard RiverFoundry workshirt with robust construction</td>
+        </tr>
+        <tr>
+          <td class="brand">RiverFoundry</td>
+          <td><span class="variant images">Images</span></td>
+          <td><a href="pdp_oxford_riverfoundry_images.html" class="link">pdp_oxford_riverfoundry_images.html</a></td>
+          <td class="description">With real product images instead of placeholders</td>
+        </tr>
+        <tr>
+          <td class="brand">RiverFoundry</td>
+          <td><span class="variant no-schema">No Schema</span></td>
+          <td><a href="pdp_oxford_riverfoundry_no_schema.html" class="link">pdp_oxford_riverfoundry_no_schema.html</a></td>
+          <td class="description">Without structured data markup</td>
+        </tr>
+        <tr>
+          <td class="brand">RiverFoundry</td>
+          <td><span class="variant qa">Q&A Visible</span></td>
+          <td><a href="pdp_oxford_riverfoundry_qa.html" class="link">pdp_oxford_riverfoundry_qa.html</a></td>
+          <td class="description">With expanded professional use cases (visible)</td>
+        </tr>
+        <tr>
+          <td class="brand">RiverFoundry</td>
+          <td><span class="variant qa-hidden">Q&A Hidden</span></td>
+          <td><a href="pdp_oxford_riverfoundry_qa_hidden.html" class="link">pdp_oxford_riverfoundry_qa_hidden.html</a></td>
+          <td class="description">With expanded professional use cases (hidden by default)</td>
+        </tr>
+        <tr>
+          <td class="brand">RiverFoundry</td>
+          <td><span class="variant reviews">Reviews</span></td>
+          <td><a href="pdp_oxford_riverfoundry_reviews.html" class="link">pdp_oxford_riverfoundry_reviews.html</a></td>
+          <td class="description">With detailed customer reviews</td>
+        </tr>
+        <tr>
+          <td class="brand">RiverFoundry</td>
+          <td><span class="variant uvp">UVP</span></td>
+          <td><a href="pdp_oxford_riverfoundry_uvp.html" class="link">pdp_oxford_riverfoundry_uvp.html</a></td>
+          <td class="description">With unique value proposition enhancements</td>
+        </tr>
+        
+        <!-- Stonebridge Outfitters -->
+        <tr>
+          <td class="brand">Stonebridge Outfitters</td>
+          <td><span class="variant baseline">Baseline</span></td>
+          <td><a href="pdp_oxford_stonebridge_outfitters.html" class="link">pdp_oxford_stonebridge_outfitters.html</a></td>
+          <td class="description">Standard Stonebridge Outfitters oxford shirt</td>
+        </tr>
+        <tr>
+          <td class="brand">Stonebridge Outfitters</td>
+          <td><span class="variant uvp">UVP</span></td>
+          <td><a href="pdp_oxford_stonebridge_outfitters_uvp.html" class="link">pdp_oxford_stonebridge_outfitters_uvp.html</a></td>
+          <td class="description">With unique value proposition enhancements</td>
+        </tr>
+        
+        <!-- Whitestone Provisioners -->
+        <tr>
+          <td class="brand">Whitestone Provisioners</td>
+          <td><span class="variant baseline">Baseline</span></td>
+          <td><a href="pdp_oxford_whitestone_provisioners.html" class="link">pdp_oxford_whitestone_provisioners.html</a></td>
+          <td class="description">Standard Whitestone Provisioners oxford shirt</td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <div class="footer">
+      <p><strong>AI Analytics PDP Testing Framework</strong> • Last updated: August 2025</p>
+      <p>Use these pages for testing AI evaluation of product detail pages across different brands and content variations.</p>
+    </div>
+  </div>
+  
+  <script>
+    function filterTable() {
+      const brandFilter = document.getElementById('brandFilter').value.toLowerCase();
+      const variantFilter = document.getElementById('variantFilter').value.toLowerCase();
+      const table = document.getElementById('pdpTable');
+      const rows = table.getElementsByTagName('tr');
+      
+      for (let i = 1; i < rows.length; i++) { // Skip header row
+        const row = rows[i];
+        const brand = row.cells[0].textContent.toLowerCase();
+        const variant = row.cells[1].textContent.toLowerCase();
+        
+        const brandMatch = !brandFilter || brand.includes(brandFilter);
+        const variantMatch = !variantFilter || variant.includes(variantFilter);
+        
+        if (brandMatch && variantMatch) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      }
+    }
+  </script>
+</body>
+</html>
