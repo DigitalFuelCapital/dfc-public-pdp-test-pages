@@ -1,0 +1,255 @@
+{
+  "tests": [
+    {
+      "test_name": "baseline_test",
+      "description": "Test baseline PDPs",
+      "active_pdps": [
+        "pdp_pages/active/pdp_oxford_alpine_and_oak.html",
+        "pdp_pages/active/pdp_oxford_riverfoundry.html",
+        "pdp_pages/active/pdp_oxford_stonebridge_outfitters.html",
+        "pdp_pages/active/pdp_oxford_whitestone_provisioners.html",
+        "pdp_pages/active/pdp_oxford_harbor_and_field.html"
+
+      ]
+    },
+    {
+      "test_name": "riverfoundry_images",
+      "description": "Test with riverfoundry images variant",
+      "active_pdps": [
+        "pdp_pages/active/pdp_oxford_alpine_and_oak.html",
+        "pdp_pages/active/pdp_oxford_riverfoundry_images.html",
+        "pdp_pages/active/pdp_oxford_stonebridge_outfitters.html",
+        "pdp_pages/active/pdp_oxford_whitestone_provisioners.html",
+        "pdp_pages/active/pdp_oxford_harbor_and_field.html"
+      ]
+    },
+    {
+      "test_name": "alpineandoak_images",
+      "description": "Test with alpineoak images variant",
+      "active_pdps": [
+        "pdp_pages/active/pdp_oxford_alpine_and_oak_images.html",
+        "pdp_pages/active/pdp_oxford_riverfoundry.html",
+        "pdp_pages/active/pdp_oxford_stonebridge_outfitters.html",
+        "pdp_pages/active/pdp_oxford_whitestone_provisioners.html",
+        "pdp_pages/active/pdp_oxford_harbor_and_field.html"
+      ]
+    },
+    {
+      "test_name": "harborandfield_images",
+      "description": "Test with harborfield images variant",
+      "active_pdps": [
+        "pdp_pages/active/pdp_oxford_alpine_and_oak.html",
+        "pdp_pages/active/pdp_oxford_riverfoundry.html",
+        "pdp_pages/active/pdp_oxford_stonebridge_outfitters.html",
+        "pdp_pages/active/pdp_oxford_whitestone_provisioners.html",
+        "pdp_pages/active/pdp_oxford_harbor_and_field_images.html"
+      ]
+    },
+    {
+      "test_name": "riverfoundry_no_schema",
+      "description": "Test with riverfoundry no schema variant",
+      "active_pdps": [
+        "pdp_pages/active/pdp_oxford_alpine_and_oak.html",
+        "pdp_pages/active/pdp_oxford_riverfoundry_no_schema.html",
+        "pdp_pages/active/pdp_oxford_stonebridge_outfitters.html",
+        "pdp_pages/active/pdp_oxford_whitestone_provisioners.html",
+        "pdp_pages/active/pdp_oxford_harbor_and_field.html"
+      ]
+    },
+    {
+      "test_name": "alpineandoak_no_schema",
+      "description": "Test with alpineoak no schema variant",
+      "active_pdps": [
+        "pdp_pages/active/pdp_oxford_alpine_and_oak_no_schema.html",
+        "pdp_pages/active/pdp_oxford_riverfoundry.html",
+        "pdp_pages/active/pdp_oxford_stonebridge_outfitters.html",
+        "pdp_pages/active/pdp_oxford_whitestone_provisioners.html",
+        "pdp_pages/active/pdp_oxford_harbor_and_field.html"
+      ]
+    },
+    {
+      "test_name": "harborandfield_no_schema",
+      "description": "Test with harborfield no schema variant",
+      "active_pdps": [
+        "pdp_pages/active/pdp_oxford_alpine_and_oak.html",
+        "pdp_pages/active/pdp_oxford_riverfoundry.html",
+        "pdp_pages/active/pdp_oxford_stonebridge_outfitters.html",
+        "pdp_pages/active/pdp_oxford_whitestone_provisioners.html",
+        "pdp_pages/active/pdp_oxford_harbor_and_field_no_schema.html"
+      ]
+    },
+    {
+      "test_name": "riverfoundry_reviews",
+      "description": "Test with riverfoundry no schema variant",
+      "active_pdps": [
+        "pdp_pages/active/pdp_oxford_alpine_and_oak.html",
+        "pdp_pages/active/pdp_oxford_riverfoundry_reviews.html",
+        "pdp_pages/active/pdp_oxford_stonebridge_outfitters.html",
+        "pdp_pages/active/pdp_oxford_whitestone_provisioners.html",
+        "pdp_pages/active/pdp_oxford_harbor_and_field.html"
+      ]
+    },
+    {
+      "test_name": "alpineandoak_reviews",
+      "description": "Test with alpineoak no schema variant",
+      "active_pdps": [
+        "pdp_pages/active/pdp_oxford_alpine_and_oak_reviews.html",
+        "pdp_pages/active/pdp_oxford_riverfoundry.html",
+        "pdp_pages/active/pdp_oxford_stonebridge_outfitters.html",
+        "pdp_pages/active/pdp_oxford_whitestone_provisioners.html",
+        "pdp_pages/active/pdp_oxford_harbor_and_field.html"
+      ]
+    },
+    {
+      "test_name": "harborandfield_reviews",
+      "description": "Test with harborfield no schema variant",
+      "active_pdps": [
+        "pdp_pages/active/pdp_oxford_alpine_and_oak.html",
+        "pdp_pages/active/pdp_oxford_riverfoundry.html",
+        "pdp_pages/active/pdp_oxford_stonebridge_outfitters.html",
+        "pdp_pages/active/pdp_oxford_whitestone_provisioners.html",
+        "pdp_pages/active/pdp_oxford_harbor_and_field_reviews.html"
+      ]
+    },
+    {
+      "test_name": "riverfoundry_uvp",
+      "description": "Test with riverfoundry no schema variant",
+      "active_pdps": [
+        "pdp_pages/active/pdp_oxford_alpine_and_oak.html",
+        "pdp_pages/active/pdp_oxford_riverfoundry_uvp.html",
+        "pdp_pages/active/pdp_oxford_stonebridge_outfitters.html",
+        "pdp_pages/active/pdp_oxford_whitestone_provisioners.html",
+        "pdp_pages/active/pdp_oxford_harbor_and_field.html"
+      ]
+    },
+    {
+      "test_name": "alpineandoak_uvp",
+      "description": "Test with alpineoak no schema variant",
+      "active_pdps": [
+        "pdp_pages/active/pdp_oxford_alpine_and_oak_uvp.html",
+        "pdp_pages/active/pdp_oxford_riverfoundry.html",
+        "pdp_pages/active/pdp_oxford_stonebridge_outfitters.html",
+        "pdp_pages/active/pdp_oxford_whitestone_provisioners.html",
+        "pdp_pages/active/pdp_oxford_harbor_and_field.html"
+      ]
+    },
+    {
+      "test_name": "harborandfield_uvp",
+      "description": "Test with harborfield no schema variant",
+      "active_pdps": [
+        "pdp_pages/active/pdp_oxford_alpine_and_oak.html",
+        "pdp_pages/active/pdp_oxford_riverfoundry.html",
+        "pdp_pages/active/pdp_oxford_stonebridge_outfitters.html",
+        "pdp_pages/active/pdp_oxford_whitestone_provisioners.html",
+        "pdp_pages/active/pdp_oxford_harbor_and_field_uvp.html"
+      ]
+    },
+    {
+      "test_name": "riverfoundry_qa",
+      "description": "Test with riverfoundry no schema variant",
+      "active_pdps": [
+        "pdp_pages/active/pdp_oxford_alpine_and_oak.html",
+        "pdp_pages/active/pdp_oxford_riverfoundry_qa.html",
+        "pdp_pages/active/pdp_oxford_stonebridge_outfitters.html",
+        "pdp_pages/active/pdp_oxford_whitestone_provisioners.html",
+        "pdp_pages/active/pdp_oxford_harbor_and_field.html"
+      ]
+    },
+    {
+      "test_name": "alpineandoak_qa",
+      "description": "Test with alpineoak no schema variant",
+      "active_pdps": [
+        "pdp_pages/active/pdp_oxford_alpine_and_oak_qa.html",
+        "pdp_pages/active/pdp_oxford_riverfoundry.html",
+        "pdp_pages/active/pdp_oxford_stonebridge_outfitters.html",
+        "pdp_pages/active/pdp_oxford_whitestone_provisioners.html",
+        "pdp_pages/active/pdp_oxford_harbor_and_field.html"
+      ]
+    },
+    {
+      "test_name": "harborandfield_qa",
+      "description": "Test with harborfield no schema variant",
+      "active_pdps": [
+        "pdp_pages/active/pdp_oxford_alpine_and_oak.html",
+        "pdp_pages/active/pdp_oxford_riverfoundry.html",
+        "pdp_pages/active/pdp_oxford_stonebridge_outfitters.html",
+        "pdp_pages/active/pdp_oxford_whitestone_provisioners.html",
+        "pdp_pages/active/pdp_oxford_harbor_and_field_qa.html"
+      ]
+    },
+    {
+      "test_name": "riverfoundry_qa_hidden",
+      "description": "Test with riverfoundry no schema variant",
+      "active_pdps": [
+        "pdp_pages/active/pdp_oxford_alpine_and_oak.html",
+        "pdp_pages/active/pdp_oxford_riverfoundry_qa_hidden.html",
+        "pdp_pages/active/pdp_oxford_stonebridge_outfitters.html",
+        "pdp_pages/active/pdp_oxford_whitestone_provisioners.html",
+        "pdp_pages/active/pdp_oxford_harbor_and_field.html"
+      ]
+    },
+    {
+      "test_name": "alpineandoak_qa_hidden",
+      "description": "Test with alpineoak no schema variant",
+      "active_pdps": [
+        "pdp_pages/active/pdp_oxford_alpine_and_oak_qa_hidden.html",
+        "pdp_pages/active/pdp_oxford_riverfoundry.html",
+        "pdp_pages/active/pdp_oxford_stonebridge_outfitters.html",
+        "pdp_pages/active/pdp_oxford_whitestone_provisioners.html",
+        "pdp_pages/active/pdp_oxford_harbor_and_field.html"
+      ]
+    },
+    {
+      "test_name": "harborandfield_qa_hidden",
+      "description": "Test with harborfield no schema variant",
+      "active_pdps": [
+        "pdp_pages/active/pdp_oxford_alpine_and_oak.html",
+        "pdp_pages/active/pdp_oxford_riverfoundry.html",
+        "pdp_pages/active/pdp_oxford_stonebridge_outfitters.html",
+        "pdp_pages/active/pdp_oxford_whitestone_provisioners.html",
+        "pdp_pages/active/pdp_oxford_harbor_and_field_qa_hidden.html"
+      ]
+    },
+    {
+      "test_name": "riverfoundry_descriptive_block",
+      "description": "Test with riverfoundry no schema variant",
+      "active_pdps": [
+        "pdp_pages/active/pdp_oxford_alpine_and_oak.html",
+        "pdp_pages/active/pdp_oxford_riverfoundry_descriptive_block.html",
+        "pdp_pages/active/pdp_oxford_stonebridge_outfitters.html",
+        "pdp_pages/active/pdp_oxford_whitestone_provisioners.html",
+        "pdp_pages/active/pdp_oxford_harbor_and_field.html"
+      ]
+    },
+    {
+      "test_name": "alpineandoak_descriptive_block",
+      "description": "Test with alpineoak no schema variant",
+      "active_pdps": [
+        "pdp_pages/active/pdp_oxford_alpine_and_oak_descriptive_block.html",
+        "pdp_pages/active/pdp_oxford_riverfoundry.html",
+        "pdp_pages/active/pdp_oxford_stonebridge_outfitters.html",
+        "pdp_pages/active/pdp_oxford_whitestone_provisioners.html",
+        "pdp_pages/active/pdp_oxford_harbor_and_field.html"
+      ]
+    },
+    {
+      "test_name": "harborandfield_descriptive_block",
+      "description": "Test with harborfield no schema variant",
+      "active_pdps": [
+        "pdp_pages/active/pdp_oxford_alpine_and_oak.html",
+        "pdp_pages/active/pdp_oxford_riverfoundry.html",
+        "pdp_pages/active/pdp_oxford_stonebridge_outfitters.html",
+        "pdp_pages/active/pdp_oxford_whitestone_provisioners.html",
+        "pdp_pages/active/pdp_oxford_harbor_and_field_descriptive_block.html"
+      ]
+    }
+  ],
+  "default_settings": {
+    "runs": 100,
+    "model": "gpt-5-mini",
+    "timeout": 60,
+    "shuffle": true,
+    "max_pdp": null,
+    "threads": 10
+  }
+}
